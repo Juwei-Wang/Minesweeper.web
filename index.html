@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>Minesweeper</title>
+
+<link rel="stylesheet" type="text/css" media="screen" href="css/styles.css" />
+
+</head>
+<body>
+<div class="wrapper">
+
+<h1>CPSC513 Assignment2</h1>
+	<div id="instruction">
+		<p>Instructions</p>
+		<p>30053278 Juwei Wang</p>
+		<p>Left-click: Uncover the button</p>
+		<p>Right-click: Flag the button</p>
+	</div>
+<div id="minesweeper">
+
+  <ul class="level-select">
+	<li><button data-level="easy">Easy</button></li>
+	<li><button data-level="mid">Medium</button></li>
+	<li><button data-level="hard">Hard</button></li>
+  </ul>
+  <div class="menu">
+	<ul>
+	  <li class="timer">001</li>
+	  <li class="reset"><button> RESET </button></li>
+	  <li class="mine-count">010</li>
+	</ul>
+  </div>
+  <div id="mine-container"></div>
+</div>
+
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="js/JSweeper.js"></script>
+
+</body>
+</html>
