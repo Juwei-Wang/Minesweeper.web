@@ -190,8 +190,13 @@ Minesweeper = (function() {
       positionArray[idx].status = 2;
       $mineCount.text(mines - 1);
       console.log("MM  " + _allMinesFlagged());
-      console.log(idx + "status:" + positionArray[idx].status )
-      if(_allMinesFlagged() == true){
+      for (let i = 0; i < mineArray.length; i++) {
+        console.log("index " + i + "mine "+ mineArray[i]);
+        console.log("status - mine" + positionArray[mineArray[i]].status);
+      }
+
+      console.log(idx + " current button status:" + positionArray[idx].status );
+      if(_allMinesFlagged() === true){
         alert("you win!!")
       }
       _hasWon();
@@ -274,7 +279,7 @@ Minesweeper = (function() {
     if (_allMinesFlagged() || _allBoxesOpen()) {
       _stopTimer();
       _resetBoard();
-      if(_allMinesFlagged() == true){
+      if(_allMinesFlagged() === true){
         alert("Game Over , you Win!!");
       }else {
         alert("Game Over");
@@ -288,6 +293,7 @@ Minesweeper = (function() {
   // Removes the current board and its memory
   _cleanBoard = function() {
     positionArray = [];
+    mineArray = [];
     $mineContainer.empty();
   };
 
