@@ -11,6 +11,8 @@ Minesweeper = (function() {
   //用来存放mine的位置和状态
   positionArray = [],
   mineArray = [],
+  firstuncover = true,
+  mineNumber = 0,
   //难度
   resetLevel = 'easy',
   //雷盘
@@ -18,6 +20,7 @@ Minesweeper = (function() {
   //显示的雷数目
   $mineCount = $('.mine-count'),
   timer = false;
+
 
   // Creates the mine in the mine object
   //private function
@@ -229,15 +232,37 @@ Minesweeper = (function() {
       btnIdx = _getButtonIdx(x, y);
       btn = positionArray[btnIdx];
 
+
+
       if (btn.mine) {
-        _openButton(x, y, 'explode');
-        _explodeMines();
-        alert("Game Over!! Please reset your game");
+        if(firstuncover === true){
+          btn.mine = 0;
+          console.log("Brfore" + mineArray);
+          // for (let i = 0; i < mineArray.length; i++) {
+          //   if (mineArray[i] === btnIdx){
+          //     mineArray.splice(i);
+          //   }
+          // }
+
+          //first move should be guaranteed to land on an empty square
+          var mineIndex = mineArray.indexOf(btnIdx);
+          if(mineIndex > -1){
+            mineArray.splice(mineIndex,1);
+          }
+          console.log(mineArray);
+          _checkSurroundingMines(x, y);
+          firstuncover = false;
+          $mineCount.text(mineNumber - 1);
+        }else {
+          _openButton(x, y, 'explode');
+          _explodeMines();
+          alert("Game Over!! Please reset your game");
+        }
       } else {
-        _checkSurroundingMines(x, y)
+        _checkSurroundingMines(x, y);
+        firstuncover = false;
       }
     }
-
 
   };
 
@@ -294,6 +319,7 @@ Minesweeper = (function() {
   _cleanBoard = function() {
     positionArray = [];
     mineArray = [];
+    firstuncover = true;
     $mineContainer.empty();
   };
 
@@ -310,6 +336,20 @@ Minesweeper = (function() {
     _initBoard();
   };
 
+  var pressTimer;
+
+  function press(){
+    $("button").mouseup(function(){
+      clearTimeout(pressTimer);
+      // Clear timeout
+      return false;
+    }).mousedown(function(){
+      // Set timeout
+      pressTimer = window.setTimeout(function() {console.log('I have been pressed')},3000);
+      return false;
+    });
+  }
+
   _initEvents = function() {
 
     //$(selector).on(event,childSelector,data,function)
@@ -322,19 +362,40 @@ Minesweeper = (function() {
       _resetBoard(Settings[level]);
     });
 
-    $mineContainer.on('mousedown', 'button', _pressButton);
-    $mineContainer.on('contextmenu', 'button', _flagButton);
 
-    // $mineContainer.mousedown(function (e) {
-    //        var code = e.button;
-    //        console.log(code);
-    //        if (code == 0){
-    //          _pressButton;
-    //        }else {
-    //          _flagButton;
-    //        }
-    //  }
-    //  );
+    var tmr = 0;
+    var islong = 0;
+    // $mineContainer.on('mouseup', 'button', _pressButton);
+    $mineContainer.on('contextmenu', 'button', _flagButton);
+    $mineContainer.on('mousedown', 'button', function(e) {
+      e.preventDefault();
+      console.log("timer " + timer);
+      if (!timer) _startTimer();
+      var $kc = $(this),
+          //extract the x index of button
+          x = parseInt($kc.attr('data-x'), 10),
+          //extract the y index of button
+          y = parseInt($kc.attr('data-y'), 10);
+      tmr = setTimeout(function () {
+        _flagButton2(x,y);
+        islong = 1;
+      }, 2000);
+    }).on('mouseup', 'button', function(e) {
+      var $kc = $(this),
+          //extract the x index of button
+          x = parseInt($kc.attr('data-x'), 10),
+          //extract the y index of button
+          y = parseInt($kc.attr('data-y'), 10);
+      console.log(islong);
+      if(islong === 0){
+        if(e.which === 1){
+          _pressButton2(x,y)
+        }
+      }
+      islong = 0;
+      console.log(islong);
+      clearTimeout(tmr);
+    });
 
 
     $('.reset').on('click', function() {
@@ -343,6 +404,87 @@ Minesweeper = (function() {
       _startTimer();
       _resetBoard(Settings[level]);
     })
+  };
+
+  _flagButton2 = function(x,y) {
+    var
+        //get the index from positionArray
+        idx = _getButtonIdx(x, y),
+        //get the array from positionArray
+        btn = positionArray[idx],
+        $btn = $('[data-x='+x+'][data-y='+y+']'),
+        cu_status,
+        mines = parseInt($mineCount.text(), 10);
+
+    // button status: 0-> closed, 1-> open, 2-> flagged
+    if (btn.status === 0) {
+      positionArray[idx].status = 2;
+      $mineCount.text(mines - 1);
+      console.log("MM  " + _allMinesFlagged());
+      for (let i = 0; i < mineArray.length; i++) {
+        console.log("index " + i + "mine "+ mineArray[i]);
+        console.log("status - mine" + positionArray[mineArray[i]].status);
+      }
+
+      console.log(idx + " current button status:" + positionArray[idx].status );
+      if(_allMinesFlagged() === true){
+        alert("you win!!")
+      }
+      _hasWon();
+    } else if (btn.status === 2) {
+      positionArray[idx].status = 0;
+      $mineCount.text(mines + 1);
+    }
+
+    if($btn.hasClass('open')) {
+      cu_status = $btn.attr('class');
+    }else {
+      cu_status = "not - defined";
+    }
+    if (cu_status != "open") {
+      $btn.toggleClass('flagged');
+    }
+  };
+
+  _pressButton2 = function(x,y) {
+    var $el, btnIdx, btn;
+
+    (console.log("timer " + timer));
+    if (!timer) _startTimer();
+    btnIdx = _getButtonIdx(x, y);
+    btn = positionArray[btnIdx];
+
+
+
+      if (btn.mine) {
+        if(firstuncover === true){
+          btn.mine = 0;
+          console.log("Brfore" + mineArray);
+          // for (let i = 0; i < mineArray.length; i++) {
+          //   if (mineArray[i] === btnIdx){
+          //     mineArray.splice(i);
+          //   }
+          // }
+
+          //first move should be guaranteed to land on an empty square
+          var mineIndex = mineArray.indexOf(btnIdx);
+          if(mineIndex > -1){
+            mineArray.splice(mineIndex,1);
+          }
+          console.log(mineArray);
+          _checkSurroundingMines(x, y);
+          firstuncover = false;
+          $mineCount.text(mineNumber - 1);
+        }else {
+          _openButton(x, y, 'explode');
+          _explodeMines();
+          alert("Game Over!! Please reset your game");
+        }
+      } else {
+        _checkSurroundingMines(x, y);
+        firstuncover = false;
+      }
+
   };
 
   // Render the board
@@ -354,7 +496,7 @@ Minesweeper = (function() {
     // This method is often used with .addClass() to switch elements' classes from one to another
     $mineContainer.parent().removeClass().addClass(dificulty);
     $mineCount.text(_level.mines);
-
+    mineNumber = _level.mines;
     //开始画雷盘
     _createMines(_level);
     for (i = 0; i < positionArray.length; i++) {
